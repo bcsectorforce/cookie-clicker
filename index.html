@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cookie Clicker Deluxe</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #f3e5ab, #d6b06f);
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1 {
+        margin-top: 20px;
+        font-size: 3rem;
+        text-shadow: 2px 2px #b98b4d;
+    }
+
+    #cookie {
+        width: 220px;
+        height: 220px;
+        background-image: url("https://share.google/images/DeXpRd9XVTV1vCnxR");
+        background-size: contain;
+        background-repeat: no-repeat;
+        display: block;
+        margin: 20px auto;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+
+    #cookie:active {
+        transform: scale(0.92);
+    }
+
+    #stats {
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+    }
+
+    #upgradeContainer {
+        width: 80%;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.6);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #8a6d3b;
+    }
+
+    .upgrade {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        margin: 6px 0;
+        background: #fff2cc;
+        border: 2px solid #cba86e;
+        border-radius: 8px;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    .upgrade:hover {
+        background: #ffe9a6;
+        transform: scale(1.01);
+    }
+
+    .upgrade button {
+        padding: 5px 12px;
+        font-size: 1rem;
+        cursor: pointer;
+        background: #c69749;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        transition: background 0.3s;
+    }
+
+    .upgrade button:hover {
+        background: #b2823c;
+    }
+
+</style>
+</head>
+<body>
+
+<h1>🍪 Cookie Clicker Deluxe</h1>
+<p> Made by James Degenhardt</p>
+
+<div id="stats">
+    Cookies: <span id="cookieCount">0</span><br>
+    Per Click: <span id="cpc">1</span><br>
+    Per Second: <span id="cps">0</span>
+</div>
+
+<div id="cookie"></div>
+
+<h2>Upgrades</h2>
+<div id="upgradeContainer"></div>
+
+<script>
+//-------------------------------------------
+// CORE GAME VARIABLES
+//-------------------------------------------
+let cookies = 0;
+let cookiesPerClick = 1;
+let cookiesPerSecond = 0;
+
+// Load old save if available
+if (localStorage.getItem("saveData")) {
+    let save = JSON.parse(localStorage.getItem("saveData"));
+    cookies = save.cookies;
+    cookiesPerClick = save.cpc;
+    cookiesPerSecond = save.cps;
+    upgradesPurchased = save.upgradesPurchased || {};
+}
+
+//-------------------------------------------
+// FUN UPGRADE NAMES
+//-------------------------------------------
+const upgradeNames = [
+    "Tiny Spoon", "Grandma’s Secret Recipe", "Super Oven",
+    "Golden Mixing Bowl", "Chocolate Mine", "Cookie Factory",
+    "Sugar Storm", "Waffle Press", "The Dough Golem",
+    "The Cocoa Core", "Bakery Empire", "Molten Sugar Reactor",
+    "Quantum Whisk", "The Eternal Oven", "The Cookie Planet",
+    "Celestial Baker", "The Infinite Dough Pit", "Time-Warp Oven",
+    "The Cookie Singularity", "Goddess of Pastries"
+];
+
+//-------------------------------------------
+// CREATE 20 UPGRADES (infinite purchases)
+//-------------------------------------------
+const upgrades = [];
+for (let i = 1; i <= 20; i++) {
+    upgrades.push({
+        id: i,
+        name: upgradeNames[i - 1],
+        baseCost: Math.floor(60 * Math.pow(2.1, i)),
+        cost: Math.floor(60 * Math.pow(2.1, i)),
+        cpcBoost: i * 4.2,
+        cpsBoost: i * 3.1,
+        purchased: 0 // can be purchased infinitely
+    });
+}
+
+//-------------------------------------------
+// BUILD UPGRADE UI
+//-------------------------------------------
+const container = document.getElementById("upgradeContainer");
+
+upgrades.forEach(up => {
+    const div = document.createElement("div");
+    div.className = "upgrade";
+    div.id = "upg" + up.id;
+
+    div.innerHTML = `
+        <strong>${up.name} (Owned: <span id="owned${up.id}">0</span>)</strong>
+        <span>Cost: <span id="cost${up.id}">${up.cost}</span></span>
+        <button onclick="buyUpgrade(${up.id})">Buy</button>
+    `;
+    container.appendChild(div);
+});
+
+//-------------------------------------------
+// CLICK COOKIE
+//-------------------------------------------
+document.getElementById("cookie").addEventListener("click", () => {
+    cookies += cookiesPerClick;
+    updateUI();
+});
+
+//-------------------------------------------
+// BUY UPGRADE (MULTIPLE PURCHASES ALLOWED)
+//-------------------------------------------
+function buyUpgrade(id) {
+    const up = upgrades.find(u => u.id === id);
+
+    if (cookies >= up.cost) {
+        cookies -= up.cost;
+        up.purchased++;
+
+        // Increase player stats
+        cookiesPerClick += up.cpcBoost;
+        cookiesPerSecond += up.cpsBoost;
+
+        // Cost increases every time
+        up.cost = Math.floor(up.cost * 1.03);
+
+        // Update UI elements
+        document.getElementById("owned" + id).textContent = up.purchased;
+        document.getElementById("cost" + id).textContent = up.cost;
+
+        updateUI();
+    }
+}
+
+//-------------------------------------------
+// GENERATE COOKIES PER SECOND
+//-------------------------------------------
+setInterval(() => {
+    cookies += cookiesPerSecond;
+
+    updateUI();
+}, 1000);
+
+//-------------------------------------------
+// UPDATE UI
+//-------------------------------------------
+function updateUI() {
+    document.getElementById("cookieCount").textContent = Math.floor(cookies);
+    document.getElementById("cpc").textContent = cookiesPerClick.toFixed(1);
+    document.getElementById("cps").textContent = cookiesPerSecond.toFixed(1);
+}
+
+//-------------------------------------------
+// AUTO-SAVE EVERY 3 SECONDS
+//-------------------------------------------
+setInterval(() => {
+    localStorage.setItem("saveData", JSON.stringify({
+        cookies,
+        cpc: cookiesPerClick,
+        cps: cookiesPerSecond,
+        upgradesPurchased: upgrades.map(u => u.purchased)
+    }));
+}, 3000);
+
+updateUI();
+</script>
+
+</body>
+</html>
