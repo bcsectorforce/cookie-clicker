@@ -264,10 +264,10 @@
   const UPGRADE_DEFS = Array.from({length:20}, (_,i)=>{
     const id = i+1;
     // cost curve: start low, grow exponentially
-    const baseCost = Math.round(10 * Math.pow(2.75, i)); // escalates quickly over 20 items
+    const baseCost = Math.round(10 * Math.pow(2.52, i)); // escalates quickly over 20 items
     // Each upgrade provides some cps and cpc. Later upgrades give more.
-    const baseCps = +(Math.pow(1.6, i) * 0.02).toFixed(3); // small base, scales
-    const baseCpc = +(Math.pow(1.5, i) * 0.05).toFixed(3);
+    const baseCps = +(Math.pow(1.6, i) * 1.2).toFixed(3); // small base, scales
+    const baseCpc = +(Math.pow(1.5, i) * 1.59).toFixed(3);
     return {
       id,
       key: 'up'+id,
